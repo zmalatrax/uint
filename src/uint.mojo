@@ -77,6 +77,28 @@ struct UInt[BITS: Int, LIMBS: Int]():
     fn __ne__(inout self, other: Self) -> Bool:
         return ~self.__eq__(other)
 
+    @always_inline("nodebug")
+    fn __gt__(inout self, other: Self) -> Bool:
+        for i in range(LIMBS):
+            if self.limbs[LIMBS - 1 - i].__gt__(other.limbs[LIMBS - 1 - i]):
+                return True
+        return False
+
+    @always_inline("nodebug")
+    fn __ge__(inout self, other: Self) -> Bool:
+        return self.__eq__(other) or self.__gt__(other)
+
+    @always_inline("nodebug")
+    fn __lt__(inout self, other: Self) -> Bool:
+        for i in range(LIMBS):
+            if self.limbs[LIMBS - 1 - i].__lt__(other.limbs[LIMBS - 1 - i]):
+                return True
+        return False
+
+    @always_inline("nodebug")
+    fn __le__(inout self, other: Self) -> Bool:
+        return self.__eq__(other) or self.__lt__(other)
+
 
 @always_inline("nodebug")
 fn nlimbs(bits: Int) -> Int:
