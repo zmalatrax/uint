@@ -38,6 +38,17 @@ fn test_eq() raises:
     assert_true(x != y)
 
 
+fn test_add() raises:
+    var x = UInt[256, 4].max()
+    var y = UInt[256, 4](1)
+    var res = x + y
+    assert_true(res == UInt[256, 4].zero())
+
+    var z = UInt[256, 4](UInt64.MAX, 0, 1)
+    var res_2 = y + z
+    assert_true(res_2 == UInt[256, 4](0, 1, 1))
+
+
 fn test_gt() raises:
     var max1 = UInt[1, 1](1)
     assert_true(max1 > UInt[1, 1](0))

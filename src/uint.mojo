@@ -99,6 +99,52 @@ struct UInt[BITS: Int, LIMBS: Int]():
     fn __le__(inout self, other: Self) -> Bool:
         return self.__eq__(other) or self.__lt__(other)
 
+    @always_inline("nodebug")
+    fn __add__(inout self, rhs: Self) raises -> Self:
+        """
+        Calculates `self + rhs`.
+        """
+        return self.add_with_overflow(rhs)[0]
+
+    @always_inline("nodebug")
+    fn __radd__(inout self, rhs: Self) raises -> Self:
+        """
+        Calculates `rhs + self`.
+        """
+        return self.__add__(rhs)
+
+    @always_inline("nodebug")
+    fn add_with_overflow(inout self, rhs: Self) raises -> (Self, Bool):
+        """
+        Calculates `self + rhs`.
+
+        Returns a tuple of the addition along a boolean indicating whether
+        an arithmetic overflow would occur. If an overflow would have occured
+        then the wrapped value is returned.
+        """
+
+        @parameter
+        fn u64_carrying_add(
+            lhs: UInt64, rhs: UInt64, carry: Bool
+        ) -> (UInt64, SIMD[DType.bool, 1]):
+            var add_res_1 = lhs.add_with_overflow(rhs)
+            var add_res_2 = add_res_1[0].add_with_overflow(carry)
+            return (add_res_2[0], add_res_1[1] | add_res_2[1])
+
+        if BITS == 0:
+            return (UInt[BITS, LIMBS].zero(), False)
+
+        var carry: SIMD[DType.bool, 1] = False
+        var i = 0
+        while i < LIMBS:
+            (self.limbs[i], carry) = u64_carrying_add(
+                self.limbs[i], rhs.limbs[i], carry
+            )
+            i += 1
+        var overflow = UInt64(carry) | self.limbs[LIMBS - 1] > self.mask
+        self.limbs[LIMBS - 1] &= self.mask
+        return (self, Bool(overflow))
+
 
 @always_inline("nodebug")
 fn nlimbs(bits: Int) -> Int:
