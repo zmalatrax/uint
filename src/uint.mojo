@@ -145,6 +145,20 @@ struct UInt[BITS: Int, LIMBS: Int]():
         self.limbs[LIMBS - 1] &= self.mask
         return (self, Bool(overflow))
 
+    @always_inline("nodebug")
+    fn __str__(inout self) -> String:
+        var str: String = "["
+        for i in range(LIMBS - 1):
+            str = str + String(hex(self.limbs[i])) + ", "
+        return str + String(hex(self.limbs[-1])) + "]"
+
+    @always_inline("nodebug")
+    fn __repr__(inout self) -> String:
+        var str: String = "["
+        for i in range(LIMBS - 1):
+            str = str + self.limbs[i].__repr__() + ", "
+        return str + self.limbs[-1].__repr__() + "]"
+
 
 @always_inline("nodebug")
 fn nlimbs(bits: Int) -> Int:
