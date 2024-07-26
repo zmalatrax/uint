@@ -11,6 +11,26 @@ fn test_mask() raises:
     assert_equal(mask(64), UInt64.MAX)
 
 
+fn test_max() raises:
+    var x1 = UInt[1, 1].max()
+    var y1 = UInt[1, 1](1)
+    assert_true(x1 == y1)
+
+    var x2 = UInt[7, 1].max()
+    var y2 = UInt[7, 1](127)
+    assert_true(x2 == y2)
+
+    var x3 = UInt[256, 4].max()
+    var y3 = UInt[256, 4](UInt64.MAX, UInt64.MAX, UInt64.MAX, UInt64.MAX)
+    assert_true(x3 == y3)
+
+
+fn test_min() raises:
+    var zero = UInt[128, 2].zero()
+    assert_true(zero == UInt[128, 2].min())
+    assert_true(zero == UInt[128, 2](0))
+
+
 fn test_eq() raises:
     var x = UInt[256, 4].zero()
     var y = UInt[256, 4](1)
