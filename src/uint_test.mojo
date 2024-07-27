@@ -14,21 +14,21 @@ fn test_mask() raises:
 fn test_max() raises:
     var x1 = UInt[1, 1].max()
     var y1 = UInt[1, 1](1)
-    assert_true(x1 == y1)
+    assert_equal(x1, y1)
 
     var x2 = UInt[7, 1].max()
     var y2 = UInt[7, 1](127)
-    assert_true(x2 == y2)
+    assert_equal(x2, y2)
 
     var x3 = UInt[256, 4].max()
     var y3 = UInt[256, 4](UInt64.MAX, UInt64.MAX, UInt64.MAX, UInt64.MAX)
-    assert_true(x3 == y3)
+    assert_equal(x3, y3)
 
 
 fn test_min() raises:
     var zero = UInt[128, 2].zero()
-    assert_true(zero == UInt[128, 2].min())
-    assert_true(zero == UInt[128, 2](0))
+    assert_equal(zero, UInt[128, 2].min())
+    assert_equal(zero, UInt[128, 2](0))
 
 
 fn test_eq() raises:
@@ -88,11 +88,11 @@ fn test_add() raises:
     var x = UInt[256, 4].max()
     var y = UInt[256, 4](1)
     var res = x + y
-    assert_true(res == UInt[256, 4].zero())
+    assert_equal(res, UInt[256, 4].zero())
 
     var z = UInt[256, 4](UInt64.MAX, 0, 1)
     var res_2 = y + z
-    assert_true(res_2 == UInt[256, 4](0, 1, 1))
+    assert_equal(res_2, UInt[256, 4](0, 1, 1))
 
 
 fn test_sub() raises:
@@ -101,10 +101,10 @@ fn test_sub() raises:
     var res_1 = x - x
     var res_2 = x - y
     var res_3 = y - x
-    assert_true(res_1 == UInt[256, 4].zero())
-    assert_true(res_2 == x)
-    assert_true(res_3 == UInt[256, 4].max())
+    assert_equal(res_1, UInt[256, 4].zero())
+    assert_equal(res_2, x)
+    assert_equal(res_3, UInt[256, 4].max())
 
     var z = UInt[256, 4](1, 0, UInt64.MAX)
     var res_4 = z - x - x
-    assert_true(res_4 == UInt[256, 4](UInt64.MAX, UInt64.MAX, UInt64.MAX - 1))
+    assert_equal(res_4, UInt[256, 4](UInt64.MAX, UInt64.MAX, UInt64.MAX - 1))
