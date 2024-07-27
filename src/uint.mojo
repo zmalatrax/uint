@@ -67,54 +67,54 @@ struct UInt[BITS: Int, LIMBS: Int](Stringable, Representable):
         return UInt[BITS, LIMBS](limbs)
 
     @always_inline("nodebug")
-    fn __eq__(inout self, other: Self) -> Bool:
+    fn __eq__(self, other: Self) -> Bool:
         for i in range(LIMBS):
             if self.limbs[i] != other.limbs[i]:
                 return False
         return True
 
     @always_inline("nodebug")
-    fn __ne__(inout self, other: Self) -> Bool:
+    fn __ne__(self, other: Self) -> Bool:
         return ~self.__eq__(other)
 
     @always_inline("nodebug")
-    fn __gt__(inout self, other: Self) -> Bool:
+    fn __gt__(self, other: Self) -> Bool:
         for i in range(LIMBS):
             if self.limbs[LIMBS - 1 - i].__gt__(other.limbs[LIMBS - 1 - i]):
                 return True
         return False
 
     @always_inline("nodebug")
-    fn __ge__(inout self, other: Self) -> Bool:
+    fn __ge__(self, other: Self) -> Bool:
         return self.__eq__(other) or self.__gt__(other)
 
     @always_inline("nodebug")
-    fn __lt__(inout self, other: Self) -> Bool:
+    fn __lt__(self, other: Self) -> Bool:
         for i in range(LIMBS):
             if self.limbs[LIMBS - 1 - i].__lt__(other.limbs[LIMBS - 1 - i]):
                 return True
         return False
 
     @always_inline("nodebug")
-    fn __le__(inout self, other: Self) -> Bool:
+    fn __le__(self, other: Self) -> Bool:
         return self.__eq__(other) or self.__lt__(other)
 
     @always_inline("nodebug")
-    fn __add__(inout self, rhs: Self) raises -> Self:
+    fn __add__(self, rhs: Self) raises -> Self:
         """
         Calculates `self + rhs`.
         """
         return self.add_with_overflow(rhs)[0]
 
     @always_inline("nodebug")
-    fn __radd__(inout self, rhs: Self) raises -> Self:
+    fn __radd__(self, rhs: Self) raises -> Self:
         """
         Calculates `rhs + self`.
         """
         return self.__add__(rhs)
 
     @always_inline("nodebug")
-    fn add_with_overflow(inout self, rhs: Self) raises -> (Self, Bool):
+    fn add_with_overflow(self, rhs: Self) raises -> (Self, Bool):
         """
         Calculates `self + rhs`.
 
@@ -129,21 +129,69 @@ struct UInt[BITS: Int, LIMBS: Int](Stringable, Representable):
         ) -> (UInt64, SIMD[DType.bool, 1]):
             var add_res_1 = lhs.add_with_overflow(rhs)
             var add_res_2 = add_res_1[0].add_with_overflow(carry)
-            return (add_res_2[0], add_res_1[1] | add_res_2[1])
+            return (add_res_2[0], add_res_1[1] or add_res_2[1])
 
         if BITS == 0:
             return (UInt[BITS, LIMBS].zero(), False)
 
         var carry: SIMD[DType.bool, 1] = False
+        var limbs = InlineArray[UInt64, LIMBS](0)
         var i = 0
         while i < LIMBS:
-            (self.limbs[i], carry) = u64_carrying_add(
+            (limbs[i], carry) = u64_carrying_add(
                 self.limbs[i], rhs.limbs[i], carry
             )
             i += 1
-        var overflow = UInt64(carry) | self.limbs[LIMBS - 1] > self.mask
-        self.limbs[LIMBS - 1] &= self.mask
-        return (self, Bool(overflow))
+        var overflow = UInt64(carry) or self.limbs[LIMBS - 1] > self.mask
+        limbs[LIMBS - 1] &= self.mask
+        return (UInt[BITS, LIMBS](limbs), Bool(overflow))
+
+    @always_inline("nodebug")
+    fn __sub__(self, rhs: Self) raises -> Self:
+        """
+        Calculates `self - rhs`.
+        """
+        return self.sub_with_overflow(rhs)[0]
+
+    @always_inline("nodebug")
+    fn __rsub__(self, rhs: Self) raises -> Self:
+        """
+        Calculates `rhs - self`.
+        """
+        return self.__sub__(rhs)
+
+    @always_inline("nodebug")
+    fn sub_with_overflow(self, rhs: Self) raises -> (Self, Bool):
+        """
+        Calculates `self - rhs`.
+
+        Returns a tuple of the substraction along a boolean indicating whether
+        an arithmetic underflow would occur. If an underflow would have occured
+        then the wrapped value is returned.
+        """
+
+        @parameter
+        fn u64_carrying_sub(
+            lhs: UInt64, rhs: UInt64, carry: Bool
+        ) -> (UInt64, SIMD[DType.bool, 1]):
+            var sub_res_1 = lhs.sub_with_overflow(rhs)
+            var sub_res_2 = sub_res_1[0].sub_with_overflow(carry)
+            return (sub_res_2[0], sub_res_1[1] or sub_res_2[1])
+
+        if BITS == 0:
+            return (UInt[BITS, LIMBS].zero(), False)
+
+        var carry: SIMD[DType.bool, 1] = False
+        var limbs = InlineArray[UInt64, LIMBS](0)
+        var i = 0
+        while i < LIMBS:
+            (limbs[i], carry) = u64_carrying_sub(
+                self.limbs[i], rhs.limbs[i], carry
+            )
+            i += 1
+        var overflow = UInt64(carry) or self.limbs[LIMBS - 1] > self.mask
+        limbs[LIMBS - 1] &= self.mask
+        return (UInt[BITS, LIMBS](limbs), Bool(overflow))
 
     @always_inline("nodebug")
     fn __str__(self) -> String:

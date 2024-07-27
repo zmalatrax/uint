@@ -38,17 +38,6 @@ fn test_eq() raises:
     assert_true(x != y)
 
 
-fn test_add() raises:
-    var x = UInt[256, 4].max()
-    var y = UInt[256, 4](1)
-    var res = x + y
-    assert_true(res == UInt[256, 4].zero())
-
-    var z = UInt[256, 4](UInt64.MAX, 0, 1)
-    var res_2 = y + z
-    assert_true(res_2 == UInt[256, 4](0, 1, 1))
-
-
 fn test_gt() raises:
     var max1 = UInt[1, 1](1)
     assert_true(max1 > UInt[1, 1](0))
@@ -93,3 +82,29 @@ fn test_le() raises:
         min2 <= UInt[256, 4](UInt64.MAX, UInt64.MAX - 1, UInt64.MAX, UInt64.MAX)
     )
     assert_true(min2 <= min2)
+
+
+fn test_add() raises:
+    var x = UInt[256, 4].max()
+    var y = UInt[256, 4](1)
+    var res = x + y
+    assert_true(res == UInt[256, 4].zero())
+
+    var z = UInt[256, 4](UInt64.MAX, 0, 1)
+    var res_2 = y + z
+    assert_true(res_2 == UInt[256, 4](0, 1, 1))
+
+
+fn test_sub() raises:
+    var x = UInt[256, 4](1)
+    var y = UInt[256, 4].zero()
+    var res_1 = x - x
+    var res_2 = x - y
+    var res_3 = y - x
+    assert_true(res_1 == UInt[256, 4].zero())
+    assert_true(res_2 == x)
+    assert_true(res_3 == UInt[256, 4].max())
+
+    var z = UInt[256, 4](1, 0, UInt64.MAX)
+    var res_4 = z - x - x
+    assert_true(res_4 == UInt[256, 4](UInt64.MAX, UInt64.MAX, UInt64.MAX - 1))
