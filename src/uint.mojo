@@ -2,7 +2,7 @@ from uint_errors import InvalidLimbsNumber, ValueTooLarge
 
 
 @value
-struct UInt[BITS: Int, LIMBS: Int]():
+struct UInt[BITS: Int, LIMBS: Int](Stringable, Representable):
     """
     Struct implementing unsigned integers of arbitrary size.
     """
@@ -146,18 +146,31 @@ struct UInt[BITS: Int, LIMBS: Int]():
         return (self, Bool(overflow))
 
     @always_inline("nodebug")
-    fn __str__(inout self) -> String:
+    fn __str__(self) -> String:
         var str: String = "["
         for i in range(LIMBS - 1):
             str = str + String(hex(self.limbs[i])) + ", "
         return str + String(hex(self.limbs[-1])) + "]"
 
     @always_inline("nodebug")
-    fn __repr__(inout self) -> String:
-        var str: String = "["
+    fn __repr__(self) -> String:
+        var limbs_repr: String = "["
         for i in range(LIMBS - 1):
-            str = str + self.limbs[i].__repr__() + ", "
-        return str + self.limbs[-1].__repr__() + "]"
+            limbs_repr += repr(self.limbs[i]) + ", "
+        limbs_repr += repr(self.limbs[LIMBS - 1]) + "]"
+        return (
+            "UInt["
+            + repr(BITS)
+            + ", "
+            + repr(LIMBS)
+            + "](limbs=("
+            + limbs_repr
+            + "), bits=("
+            + repr(self.bits)
+            + "), mask=("
+            + repr(self.mask)
+            + ")"
+        )
 
 
 @always_inline("nodebug")
