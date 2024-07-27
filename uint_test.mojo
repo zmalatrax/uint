@@ -1,8 +1,6 @@
 from testing import assert_true, assert_false
 
-from uint import UInt, mask, nlimbs
-
-from python import Python
+from uint.uint import UInt, mask, nlimbs
 
 alias NON_ZERO_BITS: List[Int] = List(
     1, 2, 63, 64, 65, 127, 128, 129, 256, 384, 512, 4096

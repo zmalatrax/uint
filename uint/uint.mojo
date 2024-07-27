@@ -1,4 +1,4 @@
-from uint_errors import InvalidLimbsNumber, ValueTooLarge
+from .uint_errors import InvalidLimbsNumber, ValueTooLarge
 
 
 @value
