@@ -2,7 +2,7 @@ from uint_errors import InvalidLimbsNumber, ValueTooLarge
 
 
 @value
-struct UInt[BITS: Int, LIMBS: Int](Stringable, Representable):
+struct UInt[BITS: Int, LIMBS: Int](Stringable, Representable, Sized):
     """
     Struct implementing unsigned integers of arbitrary size.
     """
@@ -36,6 +36,9 @@ struct UInt[BITS: Int, LIMBS: Int](Stringable, Representable):
             limbs[i] = limb
             i += 1
         self.__init__(limbs)
+
+    fn __len__(self) -> Int:
+        return self.limbs.__len__()
 
     @staticmethod
     @always_inline("nodebug")
@@ -100,6 +103,12 @@ struct UInt[BITS: Int, LIMBS: Int](Stringable, Representable):
         return self.__eq__(other) or self.__lt__(other)
 
     @always_inline("nodebug")
+    fn abs_diff(self, other: Self) raises -> Self:
+        if self < other:
+            return other - self
+        return self - other
+
+    @always_inline("nodebug")
     fn __add__(self, rhs: Self) raises -> Self:
         """
         Calculates `self + rhs`.
@@ -112,6 +121,13 @@ struct UInt[BITS: Int, LIMBS: Int](Stringable, Representable):
         Calculates `rhs + self`.
         """
         return self.__add__(rhs)
+
+    @always_inline("nodebug")
+    def __iadd__(inout self, rhs: Self) -> None:
+        """
+        Calculates `self += rhs`.
+        """
+        self = self.__add__(rhs)
 
     @always_inline("nodebug")
     fn add_with_overflow(self, rhs: Self) raises -> (Self, Bool):
@@ -147,6 +163,10 @@ struct UInt[BITS: Int, LIMBS: Int](Stringable, Representable):
         return (UInt[BITS, LIMBS](limbs), Bool(overflow))
 
     @always_inline("nodebug")
+    fn __neg__(self) raises -> Self:
+        return UInt[BITS, LIMBS].zero() - self
+
+    @always_inline("nodebug")
     fn __sub__(self, rhs: Self) raises -> Self:
         """
         Calculates `self - rhs`.
@@ -159,6 +179,13 @@ struct UInt[BITS: Int, LIMBS: Int](Stringable, Representable):
         Calculates `rhs - self`.
         """
         return self.__sub__(rhs)
+
+    @always_inline("nodebug")
+    def __isub__(inout self, rhs: Self) -> None:
+        """
+        Calculates `self -= rhs`.
+        """
+        self = self.__sub__(rhs)
 
     @always_inline("nodebug")
     fn sub_with_overflow(self, rhs: Self) raises -> (Self, Bool):
