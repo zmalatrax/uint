@@ -229,10 +229,10 @@ struct UInt[BITS: Int, LIMBS: Int](Stringable, Representable, Sized):
 
     @always_inline("nodebug")
     fn __repr__(self) -> String:
-        var limbs_repr: String = "["
+        var limbs_repr: String = "InlineArray[UInt64, " + String(LIMBS) + "]("
         for i in range(LIMBS - 1):
             limbs_repr += repr(self.limbs[i]) + ", "
-        limbs_repr += repr(self.limbs[LIMBS - 1]) + "]"
+        limbs_repr += repr(self.limbs[LIMBS - 1]) + ")"
         return (
             "UInt["
             + repr(BITS)
