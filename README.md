@@ -1,4 +1,4 @@
-# Mojo `uint` package using parameters
+# Mojo `uint` package - Multiple-precision integer arithmetic
 
 > Experimental package - Do not use in production.
 >
@@ -6,13 +6,14 @@
 
 Implements `UInt[BITS, LIMBS]`, the ring of numbers modulo $2^{BITS}$.
 It requires two parameters: the number of bits and
-the number of 64-bit 'limbs' required to store those bits.
+the number of 32-bit 'limbs' required to store those bits.
 
 This package is inspired by the Rust crate [`uint`](https://github.com/recmo/uint/tree/main).
+Some algorithms taken from [Handbook of applied cryptography](https://cacr.uwaterloo.ca/hac/about/chap14.pdf)
 
 ```mojo
 from uint.uint import UInt
-var integer = UInt[65, 2](1, 2)
+var integer = UInt[33, 2](1, 2)
 ```
 
 `LIMBS` is equal to $\left \lceil \frac{BITS}{64} \right \rceil$.
@@ -27,13 +28,20 @@ For commonly used size, an `alias` has been defined:
 
 ## To do
 
-- `mul`
+- `square`
 - `div`
 - `pow`
 - `gcd`
 - `log`
 - `root`
 - Modular arithmetic, to implement prime fields
+- Constructor from hex string, decimal string
 - Bits conversion
 - Bytes array conversion
 - Conversion with standard types UInt8, UInt16, UInt32, UInt64
+- bit operations
+  - `shl`
+  - `shr`
+  - `and`
+  - `or`
+  - `xor`

@@ -21,8 +21,8 @@ fn test_mask() raises:
     assert_true(mask(0) == 0)
     assert_true(mask(1) == 1)
     assert_true(mask(5) == 0x1F)
-    assert_true(mask(63) == UInt64.MAX >> 1)
-    assert_true(mask(64) == UInt64.MAX)
+    assert_true(mask(31) == UInt32.MAX >> 1)
+    assert_true(mask(32) == UInt32.MAX)
 
 
 fn test_max() raises:
@@ -34,20 +34,20 @@ fn test_max() raises:
     var y2 = UInt[7, 1](127)
     assert_true(x2 == y2)
 
-    var x3 = UInt[256, 4].max()
-    var y3 = UInt[256, 4](UInt64.MAX, UInt64.MAX, UInt64.MAX, UInt64.MAX)
+    var x3 = UInt[128, 4].max()
+    var y3 = UInt[128, 4](UInt32.MAX, UInt32.MAX, UInt32.MAX, UInt32.MAX)
     assert_true(x3 == y3)
 
 
 fn test_min() raises:
-    var zero = UInt[128, 2].zero()
-    assert_true(zero == UInt[128, 2].min())
-    assert_true(zero == UInt[128, 2](0))
+    var zero = UInt[128, 4].zero()
+    assert_true(zero == UInt[128, 4].min())
+    assert_true(zero == UInt[128, 4](0))
 
 
 fn test_eq() raises:
-    var x = UInt[256, 4].zero()
-    var y = UInt[256, 4](1)
+    var x = UInt[128, 4].zero()
+    var y = UInt[128, 4](1)
     assert_false(x == y)
     assert_true(x != y)
 
@@ -57,9 +57,9 @@ fn test_gt() raises:
     assert_true(max1 > UInt[1, 1](0))
     assert_false(max1 > max1)
 
-    var max2 = UInt[256, 4].max()
+    var max2 = UInt[128, 4].max()
     assert_true(
-        max2 > UInt[256, 4](UInt64.MAX, UInt64.MAX - 1, UInt64.MAX, UInt64.MAX)
+        max2 > UInt[128, 4](UInt32.MAX, UInt32.MAX - 1, UInt32.MAX, UInt32.MAX)
     )
 
 
@@ -68,9 +68,9 @@ fn test_ge() raises:
     assert_true(max1 >= UInt[1, 1](0))
     assert_true(max1 >= max1)
 
-    var max2 = UInt[256, 4].max()
+    var max2 = UInt[128, 4].max()
     assert_true(
-        max2 >= UInt[256, 4](UInt64.MAX, UInt64.MAX - 1, UInt64.MAX, UInt64.MAX)
+        max2 >= UInt[128, 4](UInt32.MAX, UInt32.MAX - 1, UInt32.MAX, UInt32.MAX)
     )
     assert_true(max2 >= max2)
 
@@ -80,9 +80,9 @@ fn test_lt() raises:
     assert_true(min1 < UInt[1, 1](1))
     assert_false(min1 < min1)
 
-    var min2 = UInt[256, 4].min()
+    var min2 = UInt[128, 4].min()
     assert_true(
-        min2 < UInt[256, 4](UInt64.MAX, UInt64.MAX - 1, UInt64.MAX, UInt64.MAX)
+        min2 < UInt[128, 4](UInt32.MAX, UInt32.MAX - 1, UInt32.MAX, UInt32.MAX)
     )
 
 
@@ -91,48 +91,58 @@ fn test_le() raises:
     assert_true(min1 <= UInt[1, 1](1))
     assert_true(min1 <= min1)
 
-    var min2 = UInt[256, 4].min()
+    var min2 = UInt[128, 4].min()
     assert_true(
-        min2 <= UInt[256, 4](UInt64.MAX, UInt64.MAX - 1, UInt64.MAX, UInt64.MAX)
+        min2 <= UInt[128, 4](UInt32.MAX, UInt32.MAX - 1, UInt32.MAX, UInt32.MAX)
     )
     assert_true(min2 <= min2)
 
 
 fn test_add() raises:
-    var x = UInt[256, 4].max()
-    var y = UInt[256, 4](1)
+    var x = UInt[128, 4].max()
+    var y = UInt[128, 4](1)
     var res = x + y
-    assert_true(res == UInt[256, 4].zero())
+    assert_true(res == UInt[128, 4].zero())
 
-    var z = UInt[256, 4](UInt64.MAX, 0, 1)
+    var z = UInt[128, 4](UInt32.MAX, 0, 1)
     var res_2 = y + z
-    assert_true(res_2 == UInt[256, 4](0, 1, 1))
+    assert_true(res_2 == UInt[128, 4](0, 1, 1))
 
     x += y
-    assert_true(x == UInt[256, 4].zero())
+    assert_true(x == UInt[128, 4].zero())
 
 
 fn test_sub() raises:
-    var x = UInt[256, 4](1)
-    var y = UInt[256, 4].zero()
+    var x = UInt[128, 4](1)
+    var y = UInt[128, 4].zero()
     var res_1 = x - x
     var res_2 = x - y
     var res_3 = y - x
-    assert_true(res_1 == UInt[256, 4].zero())
+    assert_true(res_1 == UInt[128, 4].zero())
     assert_true(res_2 == x)
-    assert_true(res_3 == UInt[256, 4].max())
+    assert_true(res_3 == UInt[128, 4].max())
 
-    var z = UInt[256, 4](1, 0, UInt64.MAX)
+    var z = UInt[128, 4](1, 0, UInt32.MAX)
     var res_4 = z - x - x
-    assert_true(res_4 == UInt[256, 4](UInt64.MAX, UInt64.MAX, UInt64.MAX - 1))
+    assert_true(res_4 == UInt[128, 4](UInt32.MAX, UInt32.MAX, UInt32.MAX - 1))
 
 
 fn test_abs_diff() raises:
-    var x = UInt[256, 4](1)
-    var y = UInt[256, 4].zero()
+    var x = UInt[128, 4](1)
+    var y = UInt[128, 4].zero()
     assert_true(x.abs_diff(y) == x)
-    assert_true(y.abs_diff(x) == UInt[256, 4](1))
-    assert_true(x.abs_diff(x) == UInt[256, 4].zero())
+    assert_true(y.abs_diff(x) == UInt[128, 4](1))
+    assert_true(x.abs_diff(x) == UInt[128, 4].zero())
+
+
+fn test_mul() raises:
+    var x = UInt[192, 6](5474, 456)
+    var y = UInt[192, 6](845, 435)
+    assert_true(x * y == UInt[192, 6](4625530, 2766510, 198360))
+
+    var a = UInt[128, 4](9274)
+    var b = UInt[128, 4](847)
+    assert_true(a * b == UInt[128, 4](7855078))
 
 
 fn test_neg_one() raises:

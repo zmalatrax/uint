@@ -1,17 +1,26 @@
-from .uint_errors import InvalidLimbsNumber, ValueTooLarge
+from .uint_errors import (
+    InvalidLimbsNumber,
+    ValueTooLarge,
+    MultiplicationOverflow,
+)
 
 
 @value
 struct UInt[BITS: Int, LIMBS: Int](Stringable, Representable, Sized):
     """
     Struct implementing unsigned integers of arbitrary size.
+
+
+    The most significant bit is at the right-most position.
+    The array `[a_0, ..., a_n]` represents the integer
+    2^{64 * n} * a_n + ... + 2 ^ 64 * a_1 + a_0
     """
 
-    var limbs: InlineArray[UInt64, LIMBS]
+    var limbs: InlineArray[UInt32, LIMBS]
     var bits: Int
-    var mask: UInt64
+    var mask: UInt32
 
-    fn __init__(inout self, limbs: InlineArray[UInt64, LIMBS]) raises:
+    fn __init__(inout self, limbs: InlineArray[UInt32, LIMBS]) raises:
         """
         Initialize a `UInt[BITS, LIMBS]` given a fixed-array of limbs.
         """
@@ -21,16 +30,16 @@ struct UInt[BITS: Int, LIMBS: Int](Stringable, Representable, Sized):
         self.bits = BITS
         self.mask = mask(BITS)
 
-    fn __init__(inout self, *var_limbs: UInt64) raises:
+    fn __init__(inout self, *var_limbs: UInt32) raises:
         """
-        Initialize a `UInt[BITS, LIMBS]` from a variadic number of `UInt64`.
+        Initialize a `UInt[BITS, LIMBS]` from a variadic number of `UInt32`.
 
         Raise if the provided arguments would construct a too large value.
         """
         var len = len(var_limbs)
         if len > LIMBS:
             raise ValueTooLarge
-        var limbs = InlineArray[UInt64, LIMBS](0)
+        var limbs = InlineArray[UInt32, LIMBS](0)
         var i = 0
         for limb in var_limbs:
             limbs[i] = limb
@@ -46,7 +55,7 @@ struct UInt[BITS: Int, LIMBS: Int](Stringable, Representable, Sized):
         """
         Return the `UInt[BITS, LIMBS]` zero.
         """
-        return UInt[BITS, LIMBS](InlineArray[UInt64, LIMBS](0))
+        return Self(InlineArray[UInt32, LIMBS](0))
 
     @staticmethod
     @always_inline("nodebug")
@@ -56,7 +65,7 @@ struct UInt[BITS: Int, LIMBS: Int](Stringable, Representable, Sized):
 
         Synonym of the `zero()` method.
         """
-        return UInt[BITS, LIMBS].zero()
+        return Self.zero()
 
     @staticmethod
     @always_inline("nodebug")
@@ -64,10 +73,10 @@ struct UInt[BITS: Int, LIMBS: Int](Stringable, Representable, Sized):
         """
         Return the highest `UInt[BITS, LIMBS]`, 2 ** BITS - 1.
         """
-        var limbs = InlineArray[UInt64, LIMBS](UInt64.MAX)
+        var limbs = InlineArray[UInt32, LIMBS](UInt32.MAX)
         if BITS > 0:
             limbs[LIMBS - 1] &= mask(BITS)
-        return UInt[BITS, LIMBS](limbs)
+        return Self(limbs)
 
     @always_inline("nodebug")
     fn __eq__(self, other: Self) -> Bool:
@@ -141,30 +150,30 @@ struct UInt[BITS: Int, LIMBS: Int](Stringable, Representable, Sized):
 
         @parameter
         fn u64_carrying_add(
-            lhs: UInt64, rhs: UInt64, carry: Bool
-        ) -> (UInt64, SIMD[DType.bool, 1]):
+            lhs: UInt32, rhs: UInt32, carry: Bool
+        ) -> (UInt32, SIMD[DType.bool, 1]):
             var add_res_1 = lhs.add_with_overflow(rhs)
             var add_res_2 = add_res_1[0].add_with_overflow(carry)
             return (add_res_2[0], add_res_1[1] or add_res_2[1])
 
         if BITS == 0:
-            return (UInt[BITS, LIMBS].zero(), False)
+            return (Self.zero(), False)
 
         var carry: SIMD[DType.bool, 1] = False
-        var limbs = InlineArray[UInt64, LIMBS](0)
+        var limbs = InlineArray[UInt32, LIMBS](0)
         var i = 0
         while i < LIMBS:
             (limbs[i], carry) = u64_carrying_add(
                 self.limbs[i], rhs.limbs[i], carry
             )
             i += 1
-        var overflow = UInt64(carry) or self.limbs[LIMBS - 1] > self.mask
+        var overflow = UInt32(carry) or self.limbs[LIMBS - 1] > self.mask
         limbs[LIMBS - 1] &= self.mask
-        return (UInt[BITS, LIMBS](limbs), Bool(overflow))
+        return (Self(limbs), Bool(overflow))
 
     @always_inline("nodebug")
     fn __neg__(self) raises -> Self:
-        return UInt[BITS, LIMBS].zero() - self
+        return Self.zero() - self
 
     @always_inline("nodebug")
     fn __sub__(self, rhs: Self) raises -> Self:
@@ -199,37 +208,80 @@ struct UInt[BITS: Int, LIMBS: Int](Stringable, Representable, Sized):
 
         @parameter
         fn u64_carrying_sub(
-            lhs: UInt64, rhs: UInt64, carry: Bool
-        ) -> (UInt64, SIMD[DType.bool, 1]):
+            lhs: UInt32, rhs: UInt32, carry: Bool
+        ) -> (UInt32, SIMD[DType.bool, 1]):
             var sub_res_1 = lhs.sub_with_overflow(rhs)
             var sub_res_2 = sub_res_1[0].sub_with_overflow(carry)
             return (sub_res_2[0], sub_res_1[1] or sub_res_2[1])
 
         if BITS == 0:
-            return (UInt[BITS, LIMBS].zero(), False)
+            return (Self.zero(), False)
 
         var carry: SIMD[DType.bool, 1] = False
-        var limbs = InlineArray[UInt64, LIMBS](0)
+        var limbs = InlineArray[UInt32, LIMBS](0)
         var i = 0
         while i < LIMBS:
             (limbs[i], carry) = u64_carrying_sub(
                 self.limbs[i], rhs.limbs[i], carry
             )
             i += 1
-        var overflow = UInt64(carry) or self.limbs[LIMBS - 1] > self.mask
+        var overflow = UInt32(carry) or self.limbs[LIMBS - 1] > self.mask
         limbs[LIMBS - 1] &= self.mask
-        return (UInt[BITS, LIMBS](limbs), Bool(overflow))
+        return (Self(limbs), Bool(overflow))
+
+    fn __rmul__(self, rhs: Self) raises -> Self:
+        """
+        Calculates `rhs * self`.
+        """
+        return self.__mul__(rhs)
+
+    fn __imul__(inout self, rhs: Self) raises -> None:
+        """
+        Calculates `self *= rhs`.
+        """
+        self = self.__mul__(rhs)
+
+    fn __mul__(self, rhs: Self) raises -> Self:
+        """
+        Calculates `self * rhs`.
+        """
+        var n = 0
+        var t = 0
+        for i in range(LIMBS):
+            if self.limbs[i] != UInt32.MIN:
+                n = i + 1
+            if rhs.limbs[i] != UInt32.MIN:
+                t = i + 1
+        if n + t >= LIMBS:
+            raise MultiplicationOverflow
+        var limbs = InlineArray[UInt32, LIMBS](0)
+        var carry = UInt64(0)
+
+        for i in range(t + 1):
+            for j in range(n + 1):
+                var uv: UInt64 = limbs[i + j].cast[DType.uint64]() + (
+                    self.limbs[j].cast[DType.uint64]()
+                    * rhs.limbs[i].cast[DType.uint64]()
+                ) + carry
+                limbs[i + j] = uv.cast[DType.uint32]()
+                carry = uv >> 32
+            limbs[i + n + 1] = carry.cast[DType.uint32]()
+            carry = 0
+        if carry != 0:
+            raise Error("Carry is not zero")
+        return Self(limbs)
 
     @always_inline("nodebug")
     fn __str__(self) -> String:
         var str: String = "["
         for i in range(LIMBS - 1):
-            str = str + String(hex(self.limbs[i])) + ", "
-        return str + String(hex(self.limbs[-1])) + "]"
+            var hex = hex(self.limbs[i])
+            str = str + hex + ", "
+        return str + hex(self.limbs[-1]) + "]"
 
     @always_inline("nodebug")
     fn __repr__(self) -> String:
-        var limbs_repr: String = "InlineArray[UInt64, " + String(LIMBS) + "]("
+        var limbs_repr: String = "InlineArray[UInt32, " + String(LIMBS) + "]("
         for i in range(LIMBS - 1):
             limbs_repr += repr(self.limbs[i]) + ", "
         limbs_repr += repr(self.limbs[LIMBS - 1]) + ")"
@@ -251,19 +303,19 @@ struct UInt[BITS: Int, LIMBS: Int](Stringable, Representable, Sized):
 @always_inline("nodebug")
 fn nlimbs(bits: Int) -> Int:
     """
-    Return the number of UInt64 limbs required to represent the given number of bits.
+    Return the number of UInt32 limbs required to represent the given number of bits.
     """
-    return (bits + 63) // 64
+    return (bits + 31) // 32
 
 
 @always_inline("nodebug")
-fn mask(bits: Int) -> UInt64:
+fn mask(bits: Int) -> UInt32:
     """
     Return the mask to apply to the highest limb to get the correct number of bits.
     """
     if bits == 0:
         return 0
-    var limb_bits = bits % 64
+    var limb_bits = bits % 32
     if limb_bits == 0:
-        return UInt64.MAX
+        return UInt32.MAX
     return (1 << limb_bits) - 1

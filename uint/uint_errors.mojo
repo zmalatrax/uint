@@ -3,3 +3,5 @@ alias InvalidLimbsNumber: Error = Error(
 )
 
 alias ValueTooLarge: Error = Error("Value is too large for UInt[BITS, LIMBS].")
+
+alias MultiplicationOverflow: Error = Error("Multiplication overflow.")
