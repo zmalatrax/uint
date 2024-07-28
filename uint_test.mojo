@@ -1,4 +1,4 @@
-from testing import assert_true, assert_false
+from testing import assert_true, assert_false, assert_raises
 
 from uint.uint import UInt, mask, nlimbs
 
@@ -23,6 +23,21 @@ fn test_mask() raises:
     assert_true(mask(5) == 0x1F)
     assert_true(mask(31) == UInt32.MAX >> 1)
     assert_true(mask(32) == UInt32.MAX)
+
+
+fn test_hex_string() raises:
+    alias U = UInt[128, 4]
+    var x = U(0x1234)
+    assert_true(U("0x1234") == x)
+    assert_true(U("1234") == x)
+
+    assert_true(U("0x512345") == U(0x5123, 0x45))
+    assert_true(U("0x123456789") == U(0x1234, 0x5678, 0x9))
+    assert_true(U("0x1a34b6c8f") == U(0x1A34, 0xB6C8, 0xF))
+    with assert_raises(contains="contains non-hexadecimal characters."):
+        _ = U("str")
+    with assert_raises(contains="string is empty"):
+        _ = U("")
 
 
 fn test_max() raises:

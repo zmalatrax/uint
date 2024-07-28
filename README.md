@@ -26,6 +26,22 @@ For commonly used size, an `alias` has been defined:
 `U512` , `U768` , `U1024` , `U2048` ,
 `U4096`
 
+## Features
+
+| Feature                       | Done?   |
+| ----------------------------- | ------- |
+| Create from limbs fixed-array | &#9745; |
+| Create from variadic UInt32   | &#9745; |
+| Create from hex string        | &#9745; |
+| Comparison operators          | &#9745; |
+| Addition                      | &#9745; |
+| Substraction                  | &#9745; |
+| Negate                        | &#9745; |
+| Absolute difference           | &#9745; |
+| Multiplication                | &#9745; |
+| `print`                       | &#9745; |
+| `repr`                        | &#9745; |
+
 ## To do
 
 - `square`
@@ -34,11 +50,11 @@ For commonly used size, an `alias` has been defined:
 - `gcd`
 - `log`
 - `root`
-- Modular arithmetic, to implement prime fields
-- Constructor from hex string, decimal string
+- Modular arithmetic on a given modulo, to implement prime fields
+- Constructor from decimal string (?)
 - Bits conversion
 - Bytes array conversion
-- Conversion with standard types UInt8, UInt16, UInt32, UInt64
+- Conversion with standard types UInt8, UInt16, UInt32, UInt64 (?)
 - bit operations
   - `shl`
   - `shr`

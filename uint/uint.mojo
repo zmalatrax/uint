@@ -1,4 +1,7 @@
 from .uint_errors import (
+    EmptyString,
+    HexStringTooBig,
+    InvalidHexString,
     InvalidLimbsNumber,
     ValueTooLarge,
     MultiplicationOverflow,
@@ -46,6 +49,43 @@ struct UInt[BITS: Int, LIMBS: Int](Stringable, Representable, Sized):
             i += 1
         self.__init__(limbs)
 
+    fn __init__(inout self, hex_string: String, checked: Bool = True) raises:
+        """
+        Initialize a `UInt[BITS, LIMBS]` from a hexstring.
+        It can contain '0x' or not.
+
+        Flag `checked` whether to verify input string being an hex string.
+        """
+        var str = hex_string.removeprefix("0x")
+        var str_len = len(str)
+
+        if str_len == 0:
+            raise EmptyString
+
+        if checked:
+            var is_hex = True
+            for i in range(str_len):
+                if str[i] not in String.HEX_DIGITS:
+                    is_hex = False
+                    break
+            if not is_hex:
+                raise InvalidHexString
+
+        var max_hex_chars = LIMBS * 8
+        if str_len > max_hex_chars:
+            raise HexStringTooBig
+
+        var limbs = InlineArray[UInt32, LIMBS](0)
+        var q: Int
+        var rem: Int
+        q, rem = divmod(str_len, 4)
+        for i in range(q):
+            limbs[i] = int(str[i * 4 : (i + 1) * 4], 16)
+        if rem:
+            limbs[q] = int(str[q * 4 : q * 4 + rem], 16)
+
+        self.__init__(limbs)
+
     fn __len__(self) -> Int:
         return self.limbs.__len__()
 
@@ -87,7 +127,7 @@ struct UInt[BITS: Int, LIMBS: Int](Stringable, Representable, Sized):
 
     @always_inline("nodebug")
     fn __ne__(self, other: Self) -> Bool:
-        return ~self.__eq__(other)
+        return not self.__eq__(other)
 
     @always_inline("nodebug")
     fn __gt__(self, other: Self) -> Bool:
