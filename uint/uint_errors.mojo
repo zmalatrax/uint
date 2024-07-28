@@ -15,3 +15,7 @@ alias InvalidHexString: Error = Error(
 alias HexStringTooBig: Error = Error(
     "The input string value is bigger than the maximum value of this type."
 )
+
+alias LeftShiftOverflow: Error = Error("The left shift overflowed.")
+
+alias RightShiftOverflow: Error = Error("The right shift overflowed.")

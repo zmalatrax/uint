@@ -31,9 +31,9 @@ fn test_hex_string() raises:
     assert_true(U("0x1234") == x)
     assert_true(U("1234") == x)
 
-    assert_true(U("0x512345") == U(0x5123, 0x45))
-    assert_true(U("0x123456789") == U(0x1234, 0x5678, 0x9))
-    assert_true(U("0x1a34b6c8f") == U(0x1A34, 0xB6C8, 0xF))
+    assert_true(U("0x512345") == U(0x512345))
+    assert_true(U("0x123456789") == U(0x123456789, 0x1))
+    assert_true(U("0x1a34b6c8f") == U(0xA34B6C8F, 0x1))
     with assert_raises(contains="contains non-hexadecimal characters."):
         _ = U("str")
     with assert_raises(contains="string is empty"):
@@ -158,6 +158,14 @@ fn test_mul() raises:
     var a = UInt[128, 4](9274)
     var b = UInt[128, 4](847)
     assert_true(a * b == UInt[128, 4](7855078))
+
+
+fn test_lshift() raises:
+    var x = UInt[64, 2](9)
+    assert_true(x << 1 == UInt[64, 2](18))
+    assert_true(x << 31 == UInt[64, 2](0x80000000, 0x4))
+    with assert_raises(contains="left shift overflowed"):
+        _ = x << 64
 
 
 fn test_neg_one() raises:

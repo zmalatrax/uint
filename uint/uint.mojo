@@ -3,8 +3,10 @@ from .uint_errors import (
     HexStringTooBig,
     InvalidHexString,
     InvalidLimbsNumber,
-    ValueTooLarge,
+    LeftShiftOverflow,
     MultiplicationOverflow,
+    RightShiftOverflow,
+    ValueTooLarge,
 )
 
 
@@ -78,11 +80,11 @@ struct UInt[BITS: Int, LIMBS: Int](Stringable, Representable, Sized):
         var limbs = InlineArray[UInt32, LIMBS](0)
         var q: Int
         var rem: Int
-        q, rem = divmod(str_len, 4)
+        q, rem = divmod(str_len, 8)
         for i in range(q):
-            limbs[i] = int(str[i * 4 : (i + 1) * 4], 16)
+            limbs[i] = int(str[rem + i * 8 : rem + (i + 1) * 8], 16)
         if rem:
-            limbs[q] = int(str[q * 4 : q * 4 + rem], 16)
+            limbs[q] = int(str[0:rem], 16)
 
         self.__init__(limbs)
 
@@ -309,35 +311,69 @@ struct UInt[BITS: Int, LIMBS: Int](Stringable, Representable, Sized):
             carry = 0
         if carry != 0:
             raise Error("Carry is not zero")
+        limbs[LIMBS - 1] &= self.mask
         return Self(limbs)
 
     @always_inline("nodebug")
+    fn __lshift__(self, rhs: Int) raises -> Self:
+        """
+        Return `self << rhs`.
+        """
+        var shift: UInt[BITS, LIMBS]
+        var overflowed: Bool
+        shift, overflowed = self.overflowing_lshift(rhs)
+        if overflowed:
+            raise LeftShiftOverflow
+        return shift
+
+    @always_inline("nodebug")
+    fn overflowing_lshift(self, rhs: Int) raises -> (Self, Bool):
+        """
+        Left shift by `rhs` bits with overflow detection.
+
+        Return a tuple with the left-shifted value and a boolean, being
+        true if the product is superior or equal to 2^BITS. That is, it
+        returns true if the bits shifted out are non-zero.
+        """
+        var q: Int
+        var rem: Int
+        q, rem = divmod(rhs, 32)
+        if q >= LIMBS:
+            return (Self.zero(), self != Self.zero())
+
+        var word_bits: Int = 32
+        var limbs = InlineArray[UInt32, LIMBS](0)
+        var carry: UInt32 = 0
+        for i in range(LIMBS - q):
+            var x = self.limbs[i]
+            limbs[i + q] = (x << rem) or carry
+            carry = (x >> (word_bits - rem - 1)) >> 1
+        limbs[LIMBS - 1] &= self.mask
+        return (Self(limbs), Bool(carry != 0))
+
+    @always_inline("nodebug")
     fn __str__(self) -> String:
+        """
+        Return the hexadecimal string of `self`.
+        """
+        var str: String = "0x"
+        for i in range(LIMBS):
+            var hex_str = hex(self.limbs[LIMBS - 1 - i], "")
+            if hex_str != "0":
+                str += hex_str
+        return str
+
+    @always_inline("nodebug")
+    fn __repr__(self) -> String:
+        """
+        Return a string of the `InlineArray[UInt32, LIMBS]`
+        with each value in their hexadecimal representation.
+        """
         var str: String = "["
         for i in range(LIMBS - 1):
             var hex = hex(self.limbs[i])
             str = str + hex + ", "
         return str + hex(self.limbs[-1]) + "]"
-
-    @always_inline("nodebug")
-    fn __repr__(self) -> String:
-        var limbs_repr: String = "InlineArray[UInt32, " + String(LIMBS) + "]("
-        for i in range(LIMBS - 1):
-            limbs_repr += repr(self.limbs[i]) + ", "
-        limbs_repr += repr(self.limbs[LIMBS - 1]) + ")"
-        return (
-            "UInt["
-            + repr(BITS)
-            + ", "
-            + repr(LIMBS)
-            + "](limbs=("
-            + limbs_repr
-            + "), bits=("
-            + repr(self.bits)
-            + "), mask=("
-            + repr(self.mask)
-            + ")"
-        )
 
 
 @always_inline("nodebug")

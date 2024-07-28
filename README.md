@@ -51,7 +51,7 @@ For commonly used size, an `alias` has been defined:
 - `log`
 - `root`
 - Modular arithmetic on a given modulo, to implement prime fields
-- Constructor from decimal string (?)
+- Constructor from any radix (base 2 to base 64)
 - Bits conversion
 - Bytes array conversion
 - Conversion with standard types UInt8, UInt16, UInt32, UInt64 (?)
