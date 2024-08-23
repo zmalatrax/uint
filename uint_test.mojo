@@ -164,15 +164,15 @@ fn test_lshift() raises:
     var x = UInt[64, 2](9)
     assert_true(x << 1 == UInt[64, 2](18))
     assert_true(x << 31 == UInt[64, 2](0x80000000, 0x4))
-    with assert_raises(contains="left shift overflowed"):
-        _ = x << 64
+    assert_true(x << 64 == UInt[64, 2].zero())
 
 
-fn main() raises:
+fn test_rshift() raises:
     var x = UInt[64, 2]("0xCEF5E80E3")
     assert_true(UInt[64, 2](0b1001) >> 1 == UInt[64, 2](0b100))
     assert_true(x >> 20 == UInt[64, 2](0xCEF5))
     assert_true(x >> 31 == UInt[64, 2](0x19))
+    assert_true(x >> 64 == UInt[64, 2].zero())
 
 
 fn test_neg_one() raises:

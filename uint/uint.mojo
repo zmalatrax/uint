@@ -321,10 +321,7 @@ struct UInt[BITS: Int, LIMBS: Int](Stringable, Representable, Sized):
         Throw an error in case of overflow.
         """
         var shift: UInt[BITS, LIMBS]
-        var overflowed: Bool
-        shift, overflowed = self.overflowing_lshift(rhs)
-        if overflowed:
-            raise LeftShiftOverflow
+        shift, _ = self.overflowing_lshift(rhs)
         return shift
 
     @always_inline("nodebug")
@@ -397,6 +394,8 @@ struct UInt[BITS: Int, LIMBS: Int](Stringable, Representable, Sized):
             var hex_str = hex(self.limbs[LIMBS - 1 - i], "")
             if hex_str != "0":
                 str += hex_str
+        if str == "0x":
+            str += "0"
         return str
 
     @always_inline("nodebug")
