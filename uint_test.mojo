@@ -168,6 +168,13 @@ fn test_lshift() raises:
         _ = x << 64
 
 
+fn main() raises:
+    var x = UInt[64, 2]("0xCEF5E80E3")
+    assert_true(UInt[64, 2](0b1001) >> 1 == UInt[64, 2](0b100))
+    assert_true(x >> 20 == UInt[64, 2](0xCEF5))
+    assert_true(x >> 31 == UInt[64, 2](0x19))
+
+
 fn test_neg_one() raises:
     fn neg_one[BITS: Int]() raises:
         alias LIMBS = nlimbs(BITS)

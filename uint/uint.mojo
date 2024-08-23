@@ -5,7 +5,6 @@ from .uint_errors import (
     InvalidLimbsNumber,
     LeftShiftOverflow,
     MultiplicationOverflow,
-    RightShiftOverflow,
     ValueTooLarge,
 )
 
@@ -318,6 +317,8 @@ struct UInt[BITS: Int, LIMBS: Int](Stringable, Representable, Sized):
     fn __lshift__(self, rhs: Int) raises -> Self:
         """
         Return `self << rhs`.
+
+        Throw an error in case of overflow.
         """
         var shift: UInt[BITS, LIMBS]
         var overflowed: Bool
@@ -346,10 +347,45 @@ struct UInt[BITS: Int, LIMBS: Int](Stringable, Representable, Sized):
         var carry: UInt32 = 0
         for i in range(LIMBS - q):
             var x = self.limbs[i]
-            limbs[i + q] = (x << rem) or carry
+            limbs[i + q] = (x << rem) | carry
             carry = (x >> (word_bits - rem - 1)) >> 1
         limbs[LIMBS - 1] &= self.mask
         return (Self(limbs), Bool(carry != 0))
+
+    @always_inline("nodebug")
+    fn __rshift__(self, rhs: Int) raises -> Self:
+        """
+        Return `self >> rhs`.
+
+        Doesn't throw if underflow detected, returns the remaining bits.
+        """
+        var shift: UInt[BITS, LIMBS]
+        shift, _ = self.overflowing_rshift(rhs)
+        return shift
+
+    @always_inline("nodebug")
+    fn overflowing_rshift(self, rhs: Int) raises -> (Self, Bool):
+        """
+        Right shift by `rhs` bits with underflow detection.
+
+        Return a tuple with the right-shifted value and a boolean, being
+        true if the division was rounded down. That is, it
+        returns true if the bits shifted out are non-zero.
+        """
+        var q: Int
+        var rem: Int
+        q, rem = divmod(rhs, 32)
+        if q >= LIMBS:
+            return (Self.zero(), self != Self.zero())
+
+        var word_bits: Int = 32
+        var r = Self.zero()
+        var carry: UInt32 = 0
+        for i in range(LIMBS - q):
+            var x = self.limbs[LIMBS - 1 - i]
+            r.limbs[LIMBS - 1 - i - q] = (x >> rem) | carry
+            carry = (x << (word_bits - rem - 1)) << 1
+        return (r, Bool(carry != 0))
 
     @always_inline("nodebug")
     fn __str__(self) -> String:

@@ -17,5 +17,3 @@ alias HexStringTooBig: Error = Error(
 )
 
 alias LeftShiftOverflow: Error = Error("The left shift overflowed.")
-
-alias RightShiftOverflow: Error = Error("The right shift overflowed.")
