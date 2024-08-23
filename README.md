@@ -16,7 +16,7 @@ from uint.uint import UInt
 var integer = UInt[33, 2](1, 2)
 ```
 
-`LIMBS` is equal to $\left \lceil \frac{BITS}{64} \right \rceil$.
+`LIMBS` is equal to $\left \lceil \frac{BITS}{32} \right \rceil$.
 
 For commonly used size, an `alias` has been defined:
 
@@ -39,6 +39,17 @@ For commonly used size, an `alias` has been defined:
 | Negate                        | &#9745; |
 | Absolute difference           | &#9745; |
 | Multiplication                | &#9745; |
+| Division                      | &#9744; |
+| Squaring                      | &#9744; |
+| Exponentiation                | &#9744; |
+| gdc                           | &#9744; |
+| log                           | &#9744; |
+| root                          | &#9744; |
+| Modular arithmetic            | &#9744; |
+| Bits conversion               | &#9744; |
+| Bytes array conversion        | &#9744; |
+| Bit shifts                    | &#9744; |
+| Bit logic                     | &#9744; |
 | `print`                       | &#9745; |
 | `repr`                        | &#9745; |
 
