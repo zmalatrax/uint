@@ -48,7 +48,7 @@ For commonly used size, an `alias` has been defined:
 | Modular arithmetic            | &#9744; |
 | Bits conversion               | &#9744; |
 | Bytes array conversion        | &#9744; |
-| Bit shifts                    | &#9744; |
+| Bit shifts                    | &#9745; |
 | Bit logic                     | &#9744; |
 | `print`                       | &#9745; |
 | `repr`                        | &#9745; |
@@ -67,8 +67,6 @@ For commonly used size, an `alias` has been defined:
 - Bytes array conversion
 - Conversion with standard types UInt8, UInt16, UInt32, UInt64 (?)
 - bit operations
-  - `shl`
-  - `shr`
   - `and`
   - `or`
   - `xor`
